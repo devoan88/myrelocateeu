@@ -28,8 +28,9 @@ const COMPANY_LINKS = [
   { href: "/", label: "About" },
   { href: "/stories", label: "Stories" },
   { href: "mailto:hello@relocateeu.com", label: "Contact" },
-  { href: "/privacy-policy", label: "Privacy" },
-  { href: "/privacy-policy", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/refund", label: "Refund" },
 ] as const;
 
 const FOOTER_DISCLAIMER =
