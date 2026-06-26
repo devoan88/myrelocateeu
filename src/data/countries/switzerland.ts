@@ -1,0 +1,167 @@
+import type { CountryPageData } from "./types";
+
+export const switzerland: CountryPageData = {
+  slug: "switzerland",
+  name: "Switzerland",
+  flag: "🇨🇭",
+  tagline: "Your complete relocation guide",
+  navGroup: "core",
+  confidenceLevel: "established",
+  cardItems: [
+    { icon: "🏛", text: "Residence permit — Aufenthaltsbewilligung" },
+    { icon: "🏥", text: "Mandatory private health insurance (KVG)" },
+    { icon: "🏦", text: "Bank account — UBS, Credit Suisse alternative, Neon" },
+    { icon: "🌐", text: "German/French/Italian depending on canton" },
+  ],
+  quickFacts: [
+    { label: "Capital", value: "Bern" },
+    { label: "Language", value: "DE / FR / IT / RM" },
+    { label: "Currency", value: "Swiss Franc (CHF)" },
+    { label: "EU Member", value: "No (EFTA)" },
+  ],
+  steps: [
+    {
+      id: "permit-ch",
+      category: "work",
+      title: "Residence permit",
+      description:
+        "Register with cantonal migration office within required deadlines.",
+      documents: "Passport, employment contract, rental agreement",
+      time: "Varies",
+      cost: "Varies",
+      officialWebsite: "https://www.sem.admin.ch",
+      officialLabel: "sem.admin.ch",
+      lastUpdated: "2026-06-01",
+    },
+    {
+      id: "bank-ch",
+      category: "banking",
+      title: "Open a bank account",
+      description: "Swiss account for salary, rent, and insurance premiums.",
+      documents: "Permit, passport, proof of address",
+      time: "~1 hour",
+      cost: "May require deposit",
+      officialWebsite: "https://www.ch.ch",
+      officialLabel: "ch.ch",
+      lastUpdated: "2026-06-01",
+    },
+    {
+      id: "health-ch",
+      category: "healthcare",
+      title: "Health insurance (Krankenversicherung)",
+      description: "Basic insurance mandatory within 3 months of arrival.",
+      documents: "Passport, permit",
+      time: "~1 week",
+      cost: "Premium varies",
+      officialWebsite: "https://www.ch.ch",
+      officialLabel: "ch.ch",
+      lastUpdated: "2026-06-01",
+    },
+    {
+      id: "school-ch",
+      category: "school",
+      title: "School enrollment",
+      description:
+        "Contact cantonal Schulamt for placement and document requirements.",
+      documents: "Permit, passport, school records",
+      time: "~2–4 weeks",
+      cost: "Varies",
+      officialWebsite: "https://www.ch.ch",
+      officialLabel: "ch.ch",
+      forChildren: true,
+      lastUpdated: "2026-06-01",
+    },
+  ],
+  visaTypes: [
+    {
+      name: "Permit B (Residence)",
+      subtitle: "Long-term residence",
+      requirements: [
+        "Employment contract or family reunification basis",
+        "Registration with cantonal migration office",
+        "Health insurance within 3 months",
+      ],
+      url: "https://www.sem.admin.ch",
+      verifiedDate: "2026-05-01",
+    },
+    {
+      name: "Permit L (Short-term)",
+      subtitle: "Up to one year",
+      requirements: [
+        "Fixed-term employment up to 12 months",
+        "Employer sponsorship in most cases",
+        "Valid passport and insurance",
+      ],
+      url: "https://www.sem.admin.ch",
+      verifiedDate: "2026-05-01",
+    },
+    {
+      name: "EU/EFTA Free Movement",
+      subtitle: "EU and EFTA nationals",
+      requirements: [
+        "Valid passport or ID from EU/EFTA state",
+        "Employment or sufficient means of support",
+        "Register with commune within required deadline",
+      ],
+      url: "https://www.sem.admin.ch",
+      verifiedDate: "2026-05-01",
+    },
+    {
+      name: "Student Permit",
+      subtitle: "University or training",
+      requirements: [
+        "Admission to Swiss educational institution",
+        "Proof of financial means",
+        "Health insurance and accommodation",
+      ],
+      url: "https://www.sem.admin.ch",
+      verifiedDate: "2026-05-01",
+    },
+  ],
+  costOfLiving: {
+    heading: "Cost of living (Zurich 2026)",
+    items: [
+      { label: "1BR apartment city centre", value: "CHF 2,200–3,200/month" },
+      { label: "1BR outside centre", value: "CHF 1,700–2,400/month" },
+      { label: "Monthly transport (ZVV zone 110)", value: "CHF 70–90/month" },
+      { label: "Groceries (1 person)", value: "CHF 400–600/month" },
+      {
+        label: "Health insurance (basic)",
+        value: "CHF 300–450/month (mandatory)",
+      },
+    ],
+    sourceNote: "Source: Numbeo, Swiss Federal Statistical Office, 2026",
+  },
+  officialResources: [
+    {
+      label: "sem.admin.ch",
+      url: "https://www.sem.admin.ch",
+      description: "State Secretariat for Migration",
+    },
+    {
+      label: "ch.ch",
+      url: "https://www.ch.ch",
+      description: "Official Switzerland portal",
+    },
+    {
+      label: "edk.ch",
+      url: "https://www.edk.ch",
+      description: "Education (cantonal coordination)",
+    },
+    {
+      label: "arbeit.swiss",
+      url: "https://www.arbeit.swiss",
+      description: "Public employment service",
+    },
+    {
+      label: "asyl.ch",
+      url: "https://www.ch.ch/en/foreign-nationals-in-switzerland",
+      description: "Living & working in Switzerland",
+    },
+    {
+      label: "bag.admin.ch",
+      url: "https://www.bag.admin.ch",
+      description: "Federal Office of Public Health",
+    },
+  ],
+};

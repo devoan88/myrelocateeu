@@ -1,0 +1,14 @@
+# Supabase local development (optional)
+# Run: npx supabase start
+# Apply migrations: npx supabase db push
+# Seed data: run supabase/seed.sql in SQL Editor
+
+project_id = "relocateeu"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+major_version = 15

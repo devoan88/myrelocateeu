@@ -1,19 +1,208 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+/*
+ * RelocateEU design rules
+ * - No gradients anywhere
+ * - No box shadows except: 0 1px 3px rgba(0,0,0,0.08)
+ * - Border radius: 8px small, 12px medium, 16px large
+ * - All borders: 0.5px or 1px, color hsl(var(--border))
+ * - Hover borders: hsl(var(--border-strong))
+ * - Letter spacing on headings: -0.02em
+ * - Line height body: 1.6
+ * - Transitions: all 150ms ease for hover, 200ms for state changes
+ * - Micro-interactions: subtle scale(0.98) on button click
+ */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 84% 5%;
+    --surface: 210 40% 98%;
+    --surface-2: 214 32% 96%;
+    --border: 214 32% 91%;
+    --border-strong: 215 25% 80%;
+    --text-primary: 222 84% 5%;
+    --text-secondary: 215 19% 35%;
+    --text-muted: 215 20% 65%;
+    --blue: 217 91% 60%;
+    --blue-dark: 224 76% 48%;
+    --blue-bg: 214 100% 97%;
+    --green: 142 71% 45%;
+    --green-bg: 138 76% 97%;
+    --amber: 32 98% 44%;
+    --amber-bg: 48 100% 96%;
+    --red: 0 84% 60%;
+
+    /* shadcn/ui (slate, CSS variables) */
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 32% 96%;
+    --secondary-foreground: 222 84% 5%;
+    --muted: 214 32% 96%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 214 100% 97%;
+    --accent-foreground: 222 84% 5%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+
+    /* Legacy aliases (existing pages) */
+    --navy: 224 76% 48%;
+    --gold: 32 98% 44%;
+    --ice: 210 40% 98%;
+    --cream: 0 0% 100%;
+    --text-dark: 222 84% 5%;
+    --text-mid: 215 19% 35%;
+    --text-light: 215 20% 65%;
+    --success: 142 71% 45%;
+    --warning: 32 98% 44%;
+    --danger: 0 84% 60%;
+    --verified-bg: 138 76% 97%;
+
+    --font-body: var(--font-sans);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: -0.02em;
+  }
+
+  button:active:not(:disabled) {
+    transform: scale(0.97);
+    transition: transform 100ms ease;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+      --background: 240 6% 4%;
+      --foreground: 210 40% 98%;
+      --surface: 240 5% 7%;
+      --surface-2: 240 6% 11%;
+      --border: 240 5% 17%;
+      --border-strong: 240 5% 24%;
+      --text-primary: 210 40% 98%;
+      --text-secondary: 215 16% 65%;
+      --text-muted: 215 16% 47%;
+      --card: 240 5% 7%;
+      --card-foreground: 210 40% 98%;
+      --popover: 240 5% 7%;
+      --popover-foreground: 210 40% 98%;
+      --secondary: 240 6% 11%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 240 6% 11%;
+      --muted-foreground: 215 16% 47%;
+      --accent: 240 6% 11%;
+      --accent-foreground: 210 40% 98%;
+      --input: 240 5% 17%;
+    }
+  }
+
+  .dark {
+    --background: 240 6% 4%;
+    --foreground: 210 40% 98%;
+    --surface: 240 5% 7%;
+    --surface-2: 240 6% 11%;
+    --border: 240 5% 17%;
+    --border-strong: 240 5% 24%;
+    --text-primary: 210 40% 98%;
+    --text-secondary: 215 16% 65%;
+    --text-muted: 215 16% 47%;
+    --card: 240 5% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 5% 7%;
+    --popover-foreground: 210 40% 98%;
+    --secondary: 240 6% 11%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 6% 11%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 240 6% 11%;
+    --accent-foreground: 210 40% 98%;
+    --input: 240 5% 17%;
+  }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@layer utilities {
+  .shadow-relocate {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .card-hover {
+    transition: border-color 150ms ease;
+  }
+
+  .card-hover:hover {
+    border-color: hsl(var(--border-strong));
+  }
+
+  .progress-bar {
+    transition: width 600ms ease-out;
+  }
+
+  .page-enter {
+    animation: page-enter 200ms ease forwards;
+  }
+
+  .checkbox-check {
+    animation: checkbox-pop 200ms ease;
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes checkbox-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.hero-float {
+  animation: hero-float 6s ease-in-out infinite;
 }

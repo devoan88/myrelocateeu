@@ -1,9 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const DESTINATIONS = ["Austria", "Germany", "Switzerland"] as const;
-const ORIGINS = ["Georgia", "Ukraine", "Armenia", "Other"] as const;
+const ORIGINS = ["Georgia", "Ukraine", "Armenia", "India", "Other"] as const;
 
 function SelectField({
   id,
@@ -12,6 +14,7 @@ function SelectField({
   onChange,
   options,
   placeholder,
+  getLabel,
 }: {
   id: string;
   label: string;
@@ -19,6 +22,7 @@ function SelectField({
   onChange: (value: string) => void;
   options: readonly string[];
   placeholder: string;
+  getLabel: (option: string) => string;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -37,7 +41,7 @@ function SelectField({
           </option>
           {options.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {getLabel(option)}
             </option>
           ))}
         </select>
@@ -61,10 +65,23 @@ function SelectField({
 }
 
 export default function HeroSection() {
+  const router = useRouter();
+  const { t, locale } = useLanguage();
   const [destination, setDestination] = useState("");
   const [origin, setOrigin] = useState("");
 
   const canStart = destination && origin;
+  const countryLabel = (name: string) =>
+    t.countries[name as keyof typeof t.countries] ?? name;
+
+  function handleGetGuide() {
+    const params = new URLSearchParams({
+      destination,
+      origin,
+      lang: locale,
+    });
+    router.push(`/results?${params.toString()}`);
+  }
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white px-6 py-20 sm:py-28">
@@ -75,44 +92,47 @@ export default function HeroSection() {
 
       <div className="relative mx-auto max-w-3xl text-center">
         <p className="mb-4 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700">
-          AI-powered relocation guidance
+          {t.hero.badge}
         </p>
 
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-          Move to Europe with{" "}
-          <span className="text-blue-600">confidence</span>
+          {t.hero.headline}{" "}
+          <span className="text-blue-600">{t.hero.headlineHighlight}</span>
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-          Your AI-powered relocation guide for Austria, Germany and Switzerland
+          {t.hero.subheadline}
         </p>
 
         <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-lg shadow-blue-100/50 sm:p-8">
           <div className="flex flex-col gap-5">
             <SelectField
               id="destination"
-              label="Destination country"
+              label={t.hero.destinationLabel}
               value={destination}
               onChange={setDestination}
               options={DESTINATIONS}
-              placeholder="Select destination"
+              placeholder={t.hero.destinationPlaceholder}
+              getLabel={countryLabel}
             />
             <SelectField
               id="origin"
-              label="Origin country"
+              label={t.hero.originLabel}
               value={origin}
               onChange={setOrigin}
               options={ORIGINS}
-              placeholder="Select origin"
+              placeholder={t.hero.originPlaceholder}
+              getLabel={countryLabel}
             />
           </div>
 
           <button
             type="button"
             disabled={!canStart}
+            onClick={handleGetGuide}
             className="mt-6 w-full rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/30 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
           >
-            Get Started
+            {t.hero.cta}
           </button>
         </div>
       </div>
