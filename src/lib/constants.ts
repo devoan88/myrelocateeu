@@ -1,4 +1,5 @@
-export type PlanTier = "free" | "premium" | "pro";
+export type { PlanTier } from "@/lib/features";
+import type { PlanTier } from "@/lib/features";
 
 export type PaidPlanTier = "premium" | "pro";
 
@@ -39,33 +40,6 @@ export const PRICING = {
       "Priority human consultant within 24h",
       "Downloadable PDF relocation guide",
     ],
-  },
-} as const;
-
-export const PLAN_FEATURES = {
-  free: {
-    fullChecklist: false,
-    aiChat: false,
-    chatLimit: 0,
-    pdfGuide: false,
-    prioritySupport: false,
-    personalizedGuide: false,
-  },
-  premium: {
-    fullChecklist: true,
-    aiChat: true,
-    chatLimit: PREMIUM_CHAT_LIMIT,
-    pdfGuide: false,
-    prioritySupport: false,
-    personalizedGuide: true,
-  },
-  pro: {
-    fullChecklist: true,
-    aiChat: true,
-    chatLimit: Infinity,
-    pdfGuide: true,
-    prioritySupport: true,
-    personalizedGuide: true,
   },
 } as const;
 

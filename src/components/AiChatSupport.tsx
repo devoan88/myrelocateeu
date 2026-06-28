@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import type { PlanTier } from "@/lib/constants";
-import { PREMIUM_CHAT_LIMIT } from "@/lib/constants";
+import { useEffect, useState } from "react";
+import type { PlanTier } from "@/lib/features";
+import { getAiQuestionsLimit } from "@/lib/features";
+import { usePlan } from "@/hooks/usePlan";
 import type { RelocationLanguage } from "@/lib/supabase/types";
 
 type Message = {
@@ -15,8 +16,8 @@ type AiChatSupportProps = {
   destination: string;
   origin: string;
   language: RelocationLanguage;
-  chatMessagesRemaining: number;
-  plan: PlanTier;
+  chatMessagesRemaining?: number;
+  plan?: PlanTier;
   initialMessage?: string;
 };
 
@@ -30,10 +31,14 @@ export default function AiChatSupport({
   destination,
   origin,
   language,
-  chatMessagesRemaining,
-  plan,
+  chatMessagesRemaining: initialRemaining,
+  plan: planProp,
   initialMessage,
 }: AiChatSupportProps) {
+  const { plan: hookPlan, loading: planLoading } = usePlan();
+  const plan = planProp ?? hookPlan;
+  const limit = getAiQuestionsLimit(plan);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -44,19 +49,49 @@ export default function AiChatSupport({
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [remaining, setRemaining] = useState(chatMessagesRemaining);
+  const [remaining, setRemaining] = useState(
+    initialRemaining ?? (limit === "unlimited" ? Infinity : limit)
+  );
+  const [questionsToday, setQuestionsToday] = useState(0);
+
+  useEffect(() => {
+    if (plan !== "free") return;
+    const stored = localStorage.getItem("relocateeu_ai_questions_today");
+    if (stored) {
+      try {
+        const { date, count } = JSON.parse(stored) as { date: string; count: number };
+        const today = new Date().toISOString().slice(0, 10);
+        if (date === today) {
+          setQuestionsToday(count);
+          setRemaining(Math.max(0, 3 - count));
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [plan]);
+
+  useEffect(() => {
+    if (initialRemaining !== undefined) {
+      setRemaining(initialRemaining);
+    }
+  }, [initialRemaining]);
 
   const limitLabel =
-    plan === "pro"
+    limit === "unlimited"
       ? "Unlimited messages"
-      : `${remaining} of ${PREMIUM_CHAT_LIMIT} messages left this month`;
+      : plan === "free"
+        ? `${Math.max(0, 3 - questionsToday)} of 3 questions left today`
+        : `${remaining} messages remaining`;
+
+  const atLimit =
+    limit !== "unlimited" &&
+    (plan === "free" ? questionsToday >= 3 : remaining <= 0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || loading) return;
-
-    if (plan === "premium" && remaining <= 0) return;
+    if (!trimmed || loading || atLimit) return;
 
     const userMessage: Message = { role: "user", content: trimmed };
     setMessages((prev) => [...prev, userMessage]);
@@ -83,12 +118,17 @@ export default function AiChatSupport({
           ...prev,
           { role: "assistant", content: data.reply },
         ]);
-        if (data.messagesRemaining === null) {
-          // Pro: unlimited
+        if (plan === "free") {
+          const today = new Date().toISOString().slice(0, 10);
+          const nextCount = questionsToday + 1;
+          setQuestionsToday(nextCount);
+          setRemaining(Math.max(0, 3 - nextCount));
+          localStorage.setItem(
+            "relocateeu_ai_questions_today",
+            JSON.stringify({ date: today, count: nextCount })
+          );
         } else if (typeof data.messagesRemaining === "number") {
           setRemaining(data.messagesRemaining);
-        } else if (plan === "premium") {
-          setRemaining((r) => Math.max(0, r - 1));
         }
       } else {
         setMessages((prev) => [
@@ -112,8 +152,7 @@ export default function AiChatSupport({
     }
   }
 
-  const inputDisabled =
-    loading || (plan === "premium" && remaining <= 0);
+  const inputDisabled = loading || atLimit || planLoading;
 
   return (
     <div className="rounded-2xl border border-blue-200 bg-white shadow-lg shadow-blue-100/50">
@@ -155,13 +194,25 @@ export default function AiChatSupport({
         )}
       </div>
 
-      {plan === "premium" && remaining <= 0 && (
+      {atLimit && (
         <div className="border-t border-amber-100 bg-amber-50 px-5 py-3 text-center text-sm text-amber-800">
-          Monthly limit reached.{" "}
-          <Link href="/pricing" className="font-semibold underline">
-            Upgrade to Pro
-          </Link>{" "}
-          for unlimited chat.
+          {plan === "free" ? (
+            <>
+              Daily limit reached.{" "}
+              <Link href="/pricing" className="font-semibold underline">
+                Upgrade for unlimited
+              </Link>{" "}
+              AI assistant access.
+            </>
+          ) : (
+            <>
+              Limit reached.{" "}
+              <Link href="/pricing" className="font-semibold underline">
+                Upgrade your plan
+              </Link>
+              .
+            </>
+          )}
         </div>
       )}
 

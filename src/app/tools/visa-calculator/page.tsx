@@ -1,3 +1,4 @@
+import PremiumFeatureGate from "@/components/PremiumFeatureGate";
 import VisaCalculator from "@/components/tools/VisaCalculator";
 import type { Metadata } from "next";
 
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function VisaCalculatorPage() {
-  return <VisaCalculator />;
+  return (
+    <PremiumFeatureGate feature="visaCalculator" featureLabel="Premium feature">
+      <VisaCalculator />
+    </PremiumFeatureGate>
+  );
 }

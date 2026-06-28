@@ -4,6 +4,7 @@ import HeroSlideshow from "@/components/home/HeroSlideshow";
 import HowItWorks from "@/components/home/HowItWorks";
 import StatsBar from "@/components/home/StatsBar";
 import StoriesSection from "@/components/home/StoriesSection";
+import ToolsSection from "@/components/home/ToolsSection";
 import TrustSection from "@/components/home/TrustSection";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function Home() {
       <HowItWorks />
       <TrustSection />
       <CountriesSection />
+      <ToolsSection />
       <StoriesSection />
     </>
   );

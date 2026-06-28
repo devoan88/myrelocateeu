@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PREMIUM_CHAT_LIMIT } from "@/lib/constants";
+import { getAiQuestionsLimit } from "@/lib/features";
 import { generateClaudeReply, type ChatMessage } from "@/lib/rag/claude";
 import {
   buildRagContext,
@@ -26,24 +26,16 @@ function parseLanguage(value?: string): RelocationLanguage {
 export async function POST(request: Request) {
   try {
     const userPlan = await getUserPlan();
-
-    if (!userPlan.features.aiChat) {
-      return NextResponse.json(
-        {
-          error:
-            "AI chat requires a Premium or Pro subscription. Upgrade at /pricing.",
-        },
-        { status: 403 }
-      );
-    }
+    const limit = getAiQuestionsLimit(userPlan.plan);
 
     if (
-      userPlan.plan === "premium" &&
+      limit !== "unlimited" &&
       userPlan.chatMessagesRemaining <= 0
     ) {
       return NextResponse.json(
         {
-          error: `You've used all ${PREMIUM_CHAT_LIMIT} messages this month. Upgrade to Pro for unlimited chat.`,
+          error:
+            "You've used all your AI questions for today. Upgrade for unlimited access at /pricing.",
         },
         { status: 429 }
       );
@@ -86,12 +78,12 @@ ${context}`;
       history,
     });
 
-    if (userPlan.plan === "premium" && userPlan.record?.id) {
+    if (limit !== "unlimited" && userPlan.record?.id) {
       await incrementChatUsage(userPlan.record.id);
     }
 
     const messagesRemaining =
-      userPlan.plan === "pro"
+      limit === "unlimited"
         ? null
         : Math.max(0, userPlan.chatMessagesRemaining - 1);
 

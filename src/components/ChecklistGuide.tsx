@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import AiChatSupport from "@/components/AiChatSupport";
 import RelocationInfoBlock from "@/components/RelocationInfoBlock";
-import { FREE_STEP_LIMIT } from "@/lib/constants";
 import type { ChecklistItem } from "@/lib/checklists";
 import GuideVerificationFooter from "@/components/GuideVerificationFooter";
 import type { UserPlanContext } from "@/lib/plans";
@@ -42,7 +41,6 @@ function ChecklistStep({
   index,
   isChecked,
   onToggle,
-  locked = false,
   language,
   destination,
   origin,
@@ -51,39 +49,12 @@ function ChecklistStep({
   index: number;
   isChecked: boolean;
   onToggle: () => void;
-  locked?: boolean;
   language: RelocationLanguage;
   destination: string;
   origin: string;
 }) {
   const title = item.relocationInfo?.title ?? item.title;
   const description = item.relocationInfo ? null : item.description;
-
-  if (locked) {
-    return (
-      <li className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-        <div className="flex gap-4 p-5 sm:p-6 blur-[2px] select-none">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-bold text-slate-400">
-            {index + 1}
-          </span>
-          <div>
-            <h3 className="text-lg font-semibold text-slate-400">{title}</h3>
-            <p className="mt-1 text-sm text-slate-400">
-              {description ?? item.description}
-            </p>
-          </div>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-          <Link
-            href="/pricing"
-            className="flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md"
-          >
-            Upgrade to unlock
-          </Link>
-        </div>
-      </li>
-    );
-  }
 
   return (
     <li
@@ -185,17 +156,12 @@ export default function ChecklistGuide({
   language,
 }: ChecklistGuideProps) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const hasFullChecklist = userPlan.features.fullChecklist;
 
-  const visibleItems = hasFullChecklist
-    ? items
-    : items.slice(0, FREE_STEP_LIMIT);
-  const lockedItems = hasFullChecklist ? [] : items.slice(FREE_STEP_LIMIT);
-
-  const completedCount = visibleItems.filter((item) => checked[item.id]).length;
-  const progress = Math.round((completedCount / visibleItems.length) * 100);
+  const completedCount = items.filter((item) => checked[item.id]).length;
+  const progress = Math.round((completedCount / items.length) * 100);
 
   const pdfUrl = `/api/guide/pdf?destination=${encodeURIComponent(destination)}&origin=${encodeURIComponent(origin)}&lang=${language}`;
+  const isPro = userPlan.plan === "pro";
 
   function toggle(id: string) {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -208,8 +174,8 @@ export default function ChecklistGuide({
           <div>
             <p className="font-semibold text-amber-900">Free plan</p>
             <p className="text-sm text-amber-800">
-              Showing {FREE_STEP_LIMIT} of {items.length} categories. Upgrade for
-              the full checklist and AI chat.
+              Full checklist for one country. Upgrade for all 7 countries and
+              unlimited AI assistant.
             </p>
           </div>
           <Link
@@ -221,7 +187,7 @@ export default function ChecklistGuide({
         </div>
       )}
 
-      {userPlan.features.prioritySupport && (
+      {isPro && "prioritySupport" in userPlan.features && userPlan.features.prioritySupport && (
         <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5 text-white">
           <p className="font-semibold">Pro priority support</p>
           <p className="mt-1 text-sm text-slate-300">
@@ -237,7 +203,7 @@ export default function ChecklistGuide({
         </div>
       )}
 
-      {userPlan.features.pdfGuide && (
+      {isPro && (
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold text-slate-900">PDF relocation guide</p>
@@ -268,7 +234,7 @@ export default function ChecklistGuide({
           <div className="text-left sm:text-right">
             <p className="text-2xl font-bold text-blue-600">{progress}%</p>
             <p className="text-sm text-slate-600">
-              {completedCount} of {visibleItems.length} steps completed
+              {completedCount} of {items.length} steps completed
             </p>
           </div>
         </div>
@@ -281,7 +247,7 @@ export default function ChecklistGuide({
       </div>
 
       <ol className="flex flex-col gap-4">
-        {visibleItems.map((item, index) => (
+        {items.map((item, index) => (
           <ChecklistStep
             key={item.id}
             item={item}
@@ -293,72 +259,31 @@ export default function ChecklistGuide({
             origin={origin}
           />
         ))}
-        {lockedItems.map((item, index) => (
-          <ChecklistStep
-            key={item.id}
-            item={item}
-            index={FREE_STEP_LIMIT + index}
-            isChecked={false}
-            onToggle={() => {}}
-            locked
-            language={language}
-            destination={destination}
-            origin={origin}
-          />
-        ))}
       </ol>
 
-      {completedCount === visibleItems.length && visibleItems.length > 0 && (
+      {completedCount === items.length && items.length > 0 && (
         <div className="mt-8 rounded-2xl border border-green-200 bg-green-50 p-6 text-center">
           <p className="text-lg font-semibold text-green-800">
-            {hasFullChecklist
-              ? "All steps completed!"
-              : `${FREE_STEP_LIMIT} steps completed!`}
+            All steps completed!
           </p>
           <p className="mt-1 text-sm text-green-700">
-            {hasFullChecklist
-              ? `You're well on your way to settling in ${destination}.`
-              : `Upgrade to unlock the remaining ${lockedItems.length} categories.`}
+            You&apos;re well on your way to settling in {destination}.
           </p>
-          {!hasFullChecklist && (
-            <Link
-              href="/pricing"
-              className="mt-4 inline-block rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              Unlock full checklist
-            </Link>
-          )}
         </div>
       )}
 
-      {userPlan.features.aiChat ? (
-        <div className="mt-10">
-          <h2 className="mb-4 text-xl font-bold text-slate-900">
-            AI chat support
-          </h2>
-          <AiChatSupport
-            destination={destination}
-            origin={origin}
-            language={language}
-            chatMessagesRemaining={userPlan.chatMessagesRemaining}
-            plan={userPlan.plan}
-          />
-        </div>
-      ) : (
-        <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
-          <p className="font-semibold text-slate-900">AI chat is a Premium feature</p>
-          <p className="mt-1 text-sm text-slate-600">
-            Upgrade to Premium for AI chat (50 messages/month) or Pro for
-            unlimited chat.
-          </p>
-          <Link
-            href="/pricing"
-            className="mt-4 inline-block rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-          >
-            Upgrade now
-          </Link>
-        </div>
-      )}
+      <div className="mt-10">
+        <h2 className="mb-4 text-xl font-bold text-slate-900">
+          AI chat support
+        </h2>
+        <AiChatSupport
+          destination={destination}
+          origin={origin}
+          language={language}
+          chatMessagesRemaining={userPlan.chatMessagesRemaining}
+          plan={userPlan.plan}
+        />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,12 @@
 import { cookies } from "next/headers";
-import { PLAN_FEATURES, type PlanTier } from "@/lib/constants";
+import {
+  getAiQuestionsLimit,
+  PLAN_FEATURES,
+  type PlanFeatures,
+  type PlanTier,
+} from "@/lib/features";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { createClientIfConfigured } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
 
 const PLAN_COOKIE = "relocateeu_plan_id";
@@ -19,7 +25,7 @@ export type UserPlanRecord = {
 export type UserPlanContext = {
   plan: PlanTier;
   record: UserPlanRecord | null;
-  features: (typeof PLAN_FEATURES)[PlanTier];
+  features: PlanFeatures;
   chatMessagesRemaining: number;
 };
 
@@ -31,6 +37,31 @@ const FREE_CONTEXT: UserPlanContext = {
 };
 
 export async function getUserPlan(): Promise<UserPlanContext> {
+  const supabase = await createClientIfConfigured();
+  if (supabase) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const plan = (profile?.plan as PlanTier) ?? "free";
+      const features = PLAN_FEATURES[plan] ?? PLAN_FEATURES.free;
+      const limit = getAiQuestionsLimit(plan);
+
+      return {
+        plan,
+        record: null,
+        features,
+        chatMessagesRemaining: limit === "unlimited" ? Infinity : limit,
+      };
+    }
+  }
+
   const cookieStore = await cookies();
   const planCookie = cookieStore.get(PLAN_COOKIE);
 
@@ -80,11 +111,21 @@ export async function getUserPlan(): Promise<UserPlanContext> {
   }
 
   const features = PLAN_FEATURES[plan] ?? PLAN_FEATURES.free;
-  const chatLimit = features.chatLimit;
-  const chatMessagesRemaining =
-    chatLimit === Infinity
-      ? Infinity
-      : Math.max(0, chatLimit - record.chat_messages_used);
+  const limit = getAiQuestionsLimit(plan);
+
+  if (limit === "unlimited") {
+    return {
+      plan,
+      record,
+      features,
+      chatMessagesRemaining: Infinity,
+    };
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const sameDay = record.chat_period_start === today;
+  const used = sameDay ? record.chat_messages_used : 0;
+  const chatMessagesRemaining = Math.max(0, limit - used);
 
   return {
     plan,
@@ -231,22 +272,16 @@ export async function incrementChatUsage(planId: string): Promise<boolean> {
 
   if (!data) return false;
 
-  const today = new Date();
-  const periodStart = new Date(data.chat_period_start);
-  const sameMonth =
-    periodStart.getFullYear() === today.getFullYear() &&
-    periodStart.getMonth() === today.getMonth();
+  const today = new Date().toISOString().slice(0, 10);
+  const sameDay = data.chat_period_start === today;
 
-  const used = sameMonth ? data.chat_messages_used + 1 : 1;
-  const newPeriodStart = sameMonth
-    ? data.chat_period_start
-    : today.toISOString().slice(0, 10);
+  const used = sameDay ? data.chat_messages_used + 1 : 1;
 
   await admin
     .from("user_plans")
     .update({
       chat_messages_used: used,
-      chat_period_start: newPeriodStart,
+      chat_period_start: today,
     })
     .eq("id", planId);
 
@@ -310,6 +345,6 @@ export async function isPremiumUser(): Promise<boolean> {
 }
 
 export async function hasFullChecklistAccess(): Promise<boolean> {
-  const { features } = await getUserPlan();
-  return features.fullChecklist;
+  const { plan } = await getUserPlan();
+  return plan !== "free";
 }

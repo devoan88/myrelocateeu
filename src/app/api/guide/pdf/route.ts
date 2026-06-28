@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { isDestinationCountry } from "@/lib/checklists";
+import { hasPdfGuide } from "@/lib/features";
 import { getUserPlan } from "@/lib/plans";
 import { getRelocationInfo } from "@/lib/relocation-info";
 import type { RelocationLanguage } from "@/lib/supabase/types";
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
   }
 
   const userPlan = await getUserPlan();
-  if (!userPlan.features.pdfGuide) {
+  if (!hasPdfGuide(userPlan.plan)) {
     return NextResponse.json(
       { error: "PDF guide requires a Pro subscription" },
       { status: 403 }

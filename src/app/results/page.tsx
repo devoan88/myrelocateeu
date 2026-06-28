@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import ChecklistGuide from "@/components/ChecklistGuide";
 import PersonalizedGuide from "@/components/PersonalizedGuide";
 import { getChecklist, isDestinationCountry } from "@/lib/checklists";
+import { hasPersonalizedGuide } from "@/lib/features";
 import { getUserPlan } from "@/lib/plans";
 import { generatePersonalizedGuide } from "@/lib/rag/guide";
 import {
@@ -49,7 +50,7 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
     relocationInfo: infoByCategory[item.category] ?? null,
   }));
 
-  const personalizedGuide = userPlan.features.personalizedGuide
+  const personalizedGuide = hasPersonalizedGuide(userPlan.plan)
     ? await generatePersonalizedGuide({
         destination,
         origin,

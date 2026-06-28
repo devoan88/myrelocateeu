@@ -19,9 +19,11 @@ const GUIDE_LINKS = [
 ] as const;
 
 const TOOL_LINKS = [
+  { href: "/tools/schengen-calculator", label: "Schengen calculator" },
   { href: "/tools/visa-calculator", label: "Visa calculator" },
   { href: "/tools/cost-simulator", label: "Cost simulator" },
-  { href: "/guide", label: "Document checker" },
+  { href: "/tools/document-checker", label: "Document checker" },
+  { href: "/tools/buddy-matching", label: "Expat Buddy" },
 ] as const;
 
 const COMPANY_LINKS = [

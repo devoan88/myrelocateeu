@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GuideDisclaimer from "@/components/guide/GuideDisclaimer";
 import GuideSidebar from "@/components/guide/GuideSidebar";
 import GuideSkeleton from "@/components/guide/GuideSkeleton";
 import GuideStepCard from "@/components/guide/GuideStepCard";
+import { usePlan } from "@/hooks/usePlan";
 import type { DestinationCountry } from "@/lib/checklists";
+import { canAccessCountry } from "@/lib/features";
 import {
   fetchRemoteProgress,
   loadLocalProgress,
@@ -44,6 +47,7 @@ export default function GuideClient({
   hasChildren,
   userId,
 }: GuideClientProps) {
+  const { plan, destinationCountry, loading: planLoading } = usePlan();
   const steps = useMemo(
     () => getGuideSteps(destination, hasChildren),
     [destination, hasChildren]
@@ -127,8 +131,33 @@ export default function GuideClient({
 
   const subtitleOrigin = formatOriginCitizens(origin);
 
-  if (!hydrated) {
+  if (!hydrated || planLoading) {
     return <GuideSkeleton />;
+  }
+
+  if (!canAccessCountry(plan, destination, destinationCountry)) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-6">
+        <div className="max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-8 text-center shadow-sm">
+          <p className="font-sans text-xs font-medium uppercase tracking-wider text-[#2563EB]">
+            Premium feature
+          </p>
+          <h1 className="mt-2 font-sans text-xl font-semibold text-[#0F172A]">
+            Unlock all 7 countries
+          </h1>
+          <p className="mt-2 font-sans text-sm text-[#475569]">
+            Your Free plan includes one country. Upgrade to Premium to access
+            guides for {destination} and every other destination.
+          </p>
+          <Link
+            href="/pricing"
+            className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#2563EB] font-sans text-sm font-medium text-white no-underline transition-colors hover:bg-[#1D4ED8]"
+          >
+            View plans
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (steps.length === 0) {
